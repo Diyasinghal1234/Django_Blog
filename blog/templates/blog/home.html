@@ -1,0 +1,122 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+{% load static %}
+{% load dict_filters %}
+
+<div class="container custom-container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light w-100">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li>
+                    <a href="/home">
+                        <img class="w-50" src="{% static 'image/pho.png' %}" alt="">
+                    </a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Profile
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="/newpost">New Post</a>
+                        <a class="dropdown-item" href="/MyPosts">My Posts</a>
+                        <a class="dropdown-item" href="/signout">Sign Out</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </nav> 
+    <br><br><br>
+
+    <div class="container custom-container" style="max-width: 1350px;">
+        <form method="GET" action="/home" style="margin-bottom:20px;">
+            <input type="text" name="topic"
+                  placeholder="Search by topic(e.g. Django,Python)"
+                  value="{{topic|default:''}}"
+                  class="form-control">
+            <br>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        {% if posts %}
+        {% for post in posts %}
+        <article class="media content-section">
+            <div class="media-body" style="border:1px solid #444; padding: 23px; margin-bottom: 10px; background: #ffffff;">
+                <div class="article-metadata">
+                    <h1 class="text-uppercase" style="text-align:left; float:left; color:#212529;">{{post.author}}</h1>
+                    <h5 style="text-align:right; float:right;">{{post.date_posted|date:"F d, Y"}}</h5>
+                    <hr style="clear:both;"/>
+                </div>
+                <h3>{{post.title}}</h3>
+                <p><strong>Topic:</strong> {{post.topic}}</p>
+                <p class="article-content">{{post.content}}</p>
+
+                <div class="post-images" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-top: 10px;">
+                     {% for img in post.images.all %}
+                        <div style="border:1px solid #ddd;border-radius:10px;overflow: hidden; aspect-ratio:4/3;display: flex; align-items:center;justify-content: center; background:#f8f9fa;">
+                              <img src="{{img.image.url}}"  style="max-width:100%;max-height:100%;object-fit:contain;">
+                        </div>
+                     {% endfor %}
+                </div>
+
+                <div class="reactions" style="margin-top: 10px;">
+                    {% with ur=user_reactions %}
+                        {% with ur_type=ur|dict_get:post.id %}
+                            👍 <a href="/react/{{ post.id }}/like/" {% if ur_type == 'like' %}style="font-weight:bold;color:blue"{% endif %}>Like</a> ({{ reaction_counts|dict_get:post.id|dict_get:'like' }}) |
+                            ❤️ <a href="/react/{{ post.id }}/love/" {% if ur_type == 'love' %}style="font-weight:bold;color:red"{% endif %}>Love</a> ({{ reaction_counts|dict_get:post.id|dict_get:'love' }}) |
+                            😮 <a href="/react/{{ post.id }}/wow/" {% if ur_type == 'wow' %}style="font-weight:bold;color:orange"{% endif %}>Wow</a> ({{ reaction_counts|dict_get:post.id|dict_get:'wow' }}) |
+                            😢 <a href="/react/{{ post.id }}/sad/" {% if ur_type == 'sad' %}style="font-weight:bold;color:teal"{% endif %}>Sad</a> ({{ reaction_counts|dict_get:post.id|dict_get:'sad' }}) |
+                            😡 <a href="/react/{{ post.id }}/angry/" {% if ur_type == 'angry' %}style="font-weight:bold;color:red"{% endif %}>Angry</a> ({{ reaction_counts|dict_get:post.id|dict_get:'angry' }})
+                        {% endwith %}
+                    {% endwith %}
+                </div>
+
+
+                <br><br>
+                <hr>
+                <h5>Comments:</h5>
+
+                {% for comment in post.comments.all %}
+                   <div style="border:1px solid #dee2e6;padding: 10px; margin-bottom: 5px; background: #ffffff;">
+                    <strong>{{comment.user}}</strong> - {{comment.date_posted|date:"F d, Y"}}
+                    <p>{{comment.content}}</p>
+
+                    {% if comment.user == request.user %}
+                       <a href="/edit-comment/{{comment.id}}" class="btn btn-sm btn-warning">Edit</a>
+                       <a href="/delete-comment/{{comment.id}}" class="btn btn-sm btn-danger">Delete</a>
+                    {% endif %}
+                   </div>
+                {% empty %}
+                   <p>No comments yet</p>
+                {% endfor %}
+
+                <form method="POST" action="/add-comment/{{post.id}}/">
+                    {% csrf_token %}
+                    <textarea name="content" class="form-control" placeholder="Write a comment..." required></textarea>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Add Comment</button>
+
+                </form>
+
+                <hr>
+            </div>
+        </article>
+        {% endfor %}
+
+        {% else %}
+           {% if topic %}
+           <h3 style="text-align:center;margin-top: 50px;">
+              No one has shared any view on "{{topic}}"
+           </h3>
+           {% else %}
+           <h3 style="text-align:center;margin-top: 50px;">
+               No posts available
+           </h3>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
