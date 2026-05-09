@@ -77,7 +77,10 @@ WSGI_APPLICATION = 'Django_Blog.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.parse("postgresql://django_blog_f4qd_user:NZ0K93nXm5fgEkKsQJK7F3yh9bDVD6w0@dpg-d7vkaiho3t8c73d1ju7g-a/django_blog_f4qd")
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 
