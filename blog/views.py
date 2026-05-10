@@ -79,7 +79,7 @@ def newpost(request):
         for image in images:
             PostImage.objects.create(post=post,image=image)
         return redirect('/home')
-    return render(request,'blog/newPost.html')
+    return render(request,'blog/newpost.html')
 @login_required
 def MyPosts(request):
     context={'posts':Posts.objects.filter(author=request.user)}
